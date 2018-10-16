@@ -24,33 +24,29 @@ remDr$maxWindowSize(winHand = 'current')
 remDr$closeServer # close selenium server
 
 
-
-startmonth <- 'June'
-startday <- '1'
-startyear <- '2016'
-
-
-#swdf <- data.frame('operator_name' = character(0), 'address' = character(0))
-
 # ballachulish start link
 startlink <- 'https://www.wunderground.com/personal-weather-station/dashboard?ID=IHIGHLAN46&cm_ven=localwx_pwsdash#history/tgraphs/s20171016/e20171016/mdaily'
 
 # Corran start link
 startlink <- 'https://www.wunderground.com/personal-weather-station/dashboard?ID=IUNITEDK518&cm_ven=localwx_pwsdash#history/s20160601/e20160601/mdaily'
 
+nodays <- 5
 
 remDr$navigate(startlink) # nagivate to start url
-Sys.sleep(signif(runif(1,2,3), 2))
+#Sys.sleep(signif(runif(1,2,3), 2))
 
 # MANUALLY ENTER START DATE FOR DATA COLLECTION
 
 # click table view tab
 remDr$findElement(using="css selector", value=".active+ .tab-item a")$clickElement()
 
+wdata <- data.frame()
+
+for(i in 1:nodays){
+
 # get date for current table
 elems <- remDr$findElements(using="css selector", value=".current-date")
 date <- unlist(lapply(elems, function(x){x$getElementText()}))[[1]]
-
 
 # Scrape data from each column
 elems <- remDr$findElements(using="css selector", value=".heading-cell")
@@ -84,11 +80,12 @@ day <- data.frame('time' = obtime, 'temperature' = temp, 'dewpoint' = dew, 'humi
                     'wind speed' = windSpeed, 'wind gust' = windGust, 'pressure' = pressure, 'precip. rate' = precipRate,
                     'precip accum' = precipAccum, 'uv' = uv, 'solar' = solar)
 
-
+wdata <- rbind(wdata, day)
 
 remDr$findElement(using="css selector", value="#next-timeframe")$clickElement()
+Sys.sleep(signif(runif(1,5,7), 2))
 
 
+}
 
-
-
+write.csv(wdata, 'CorranWeather_Jun-Nov2016.csv')
