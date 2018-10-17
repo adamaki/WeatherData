@@ -9,7 +9,7 @@ library(XML)
 library(wdman)
 
 
-setwd('G:/Data/WeatherData/Data tables/Ballachulish') 
+setwd('G:/Data/WeatherData/Data tables/Corran') 
 
 
 
@@ -30,7 +30,7 @@ startlink <- 'https://www.wunderground.com/personal-weather-station/dashboard?ID
 # Corran start link
 startlink <- 'https://www.wunderground.com/personal-weather-station/dashboard?ID=IUNITEDK518&cm_ven=localwx_pwsdash#history/s20160601/e20160601/mdaily'
 
-nodays <- 5
+nodays <- 45
 
 remDr$navigate(startlink) # nagivate to start url
 #Sys.sleep(signif(runif(1,2,3), 2))
@@ -51,7 +51,9 @@ date <- unlist(lapply(elems, function(x){x$getElementText()}))[[1]]
 # Scrape data from each column
 elems <- remDr$findElements(using="css selector", value=".heading-cell")
 obtime <- data.frame('time' = as.character(unlist(lapply(elems, function(x){x$getElementText()}))))
-obtime <- data.frame('time' = as.character(unlist(lapply(obtime$time, function(x) paste0(date, ' ', obtime[x,1])))))
+obtime <- data.frame('time' = as.character(unlist(lapply(obtime$time, function(x) paste0(date, ' ', obtime[x,1]))))) # add date to time
+obtime <- as.data.frame(sort(as.POSIXct(strptime(obtime$time, tz = 'UTC', format = '%B %d, %Y %I:%M %p')))) # convert character string to date/time format
+colnames(obtime) <- 'time'
 elems <- remDr$findElements(using="css selector", value=".data-cell:nth-child(2)")
 temp <- data.frame('temperature' = as.character(unlist(lapply(elems, function(x){x$getElementText()}))))
 elems <- remDr$findElements(using="css selector", value=".data-cell:nth-child(3)")
@@ -85,7 +87,13 @@ wdata <- rbind(wdata, day)
 remDr$findElement(using="css selector", value="#next-timeframe")$clickElement()
 Sys.sleep(signif(runif(1,5,7), 2))
 
-
 }
 
-write.csv(wdata, 'CorranWeather_Jun-Nov2016.csv')
+write.csv(wdata, 'CorranWeather_Jun-Oct2016.csv')
+
+
+
+
+
+
+
