@@ -7,6 +7,8 @@ library(RSelenium)
 library(seleniumPipes)
 library(XML)
 library(wdman)
+library(stringr)
+library(tidyverse)
 
 
 setwd('G:/Data/WeatherData/Data tables/Corran') 
@@ -89,9 +91,41 @@ Sys.sleep(signif(runif(1,5,7), 2))
 
 }
 
-write.csv(wdata, 'CorranWeather_Jun-Oct2016.csv')
+colnames(wdata) <- c('time', 'temp_C', 'dewpoint_C', 'humidity_percent', 'windDir_deg', 'windSpeed_kph', 'pressure_hPa', 
+                     'pressure_hPa', 'precipRate_mm', 'precipAccum_mm', 'uvIndex', 'solarIrradiance_wperm2')
 
+wdata <- as.tibble(wdata)
 
+# remove units and convert character strings to numeric
+wdata$temp_C <- as.numeric(str_sub(wdata$temp_C, 1, str_length(wdata$temp_C)-3))
+wdata$dewpoint_C <- as.numeric(str_sub(wdata$dewpoint_C, 1, str_length(wdata$dewpoint_C)-3))
+wdata$humidity_percent <- as.numeric(str_sub(wdata$humidity_percent, 1, str_length(wdata$humidity_percent)-2))
+wdata$windDir_deg <- ifelse(as.character(wdata$windDir_deg == 'North'), 0,
+                            ifelse(as.character(wdata$windDir_deg == 'NNE'), 22.5, 
+                                   ifelse(as.character(wdata$windDir_deg == 'NE'), 45, 
+                                          ifelse(as.character(wdata$windDir_deg == 'ENE'), 67.5, 
+                                                 ifelse(as.character(wdata$windDir_deg == 'East'), 90,
+                                                        ifelse(as.character(wdata$windDir_deg == 'ESE'), 112.5,
+                                                               ifelse(as.character(wdata$windDir_deg == 'SE'), 135,
+                                                                      ifelse(as.character(wdata$windDir_deg == 'SSE'), 157.5,
+                                                                             ifelse(as.character(wdata$windDir_deg == 'South'), 180,
+                                                                                    ifelse(as.character(wdata$windDir_deg == 'SSW'), 202.5,
+                                                                                           ifelse(as.character(wdata$windDir_deg == 'SW'), 225,
+                                                                                                  ifelse(as.character(wdata$windDir_deg == 'WSW'), 247.5,
+                                                                                                         ifelse(as.character(wdata$windDir_deg == 'West'), 270,
+                                                                                                                ifelse(as.character(wdata$windDir_deg == 'WNW'), 292.5,
+                                                                                                                       ifelse(as.character(wdata$windDir_deg == 'NW'), 315, 337.5)))))))))))))))
+wdata$windSpeed_kph <- as.numeric(str_sub(wdata$windSpeed_kph, 1, str_length(wdata$windSpeed_kph)-4))
+wdata$windGust_kph <- as.numeric(str_sub(wdata$windGust_kph, 1, str_length(wdata$windGust_kph)-4))
+wdata$pressure_hPa <- as.numeric(str_sub(wdata$pressure_hPa, 1, str_length(wdata$pressure_hPa)-4))
+wdata$precipRate_mm <- as.numeric(str_sub(wdata$precipRate_mm, 1, str_length(wdata$precipRate_mm)-3))
+wdata$precipAccum_mm <- as.numeric(str_sub(wdata$precipAccum_mm, 1, str_length(wdata$precipAccum_mm)-3))
+wdata$uvIndex <- as.numeric(wdata$uvIndex)
+wdata$solarIrradiance_wperm2 <- as.numeric(str_sub(wdata$solarIrradiance_wperm2, 1, str_length(wdata$solarIrradiance_wperm2)-5))
+
+write.csv(wdata, 'CorranWeather_Jun-Nov2016.csv')
+
+rm(day, dew, hum, obtime, precipAccum, precipRate, pressure, solar, temp, uv, windDir, windGust, windSpeed, date, elems)
 
 
 
